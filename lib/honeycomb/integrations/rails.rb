@@ -13,8 +13,12 @@ module Honeycomb
       yield "meta.package_version", ::Rails::VERSION::STRING
 
       ::ActionDispatch::Request.new(env).tap do |request|
-        yield "request.controller", request.params[:controller]
-        yield "request.action", request.params[:action]
+        begin
+          yield "request.controller", request.params[:controller]
+          yield "request.action", request.params[:action]
+        rescue ActionDispatch::Http::Parameters::ParseError
+          # actually we're not a rails. just rack mounted
+        end
 
         break unless request.respond_to? :routes
         break unless request.routes.respond_to? :router
